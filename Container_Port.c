@@ -116,7 +116,7 @@ void* port_thread(void* data) {
     
     // to signal or broadcast?
     //http://www.qnx.com/developers/docs/qnxcar2/index.jsp?topic=%2Fcom.qnx.doc.neutrino.getting_started%2Ftopic%2Fs1_procs_Condvar_signal_vs_broadcast.html
-    //pthread_cond_broadcast(&cond);
+    //pthread_cond_broadcast(&(prt->cond));
     pthread_cond_signal(&(prt->cond));
     
     pthread_mutex_unlock(&(prt->lock));
