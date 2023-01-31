@@ -1,7 +1,7 @@
 # Container-Port-Problem
 This is an example code utilizing pthread to simulate Container Port Problem, in which the routes of the containers(the ships) are represented as the threads to be run.
 
-In the function "ship_thread", three stages will be processed in sequece. They are loading, shipping, and unloading threads.
+In the function "ship_thread", three stages will be processed in sequece. They are in turn loading, shipping, and unloading threads.
 
 In the function "shipping_thread", a period of time sleep will be lauched to represent shipping period.
 
