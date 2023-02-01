@@ -6,7 +6,7 @@ Object: utilizing pthread to simulate Container Port Problem
 */
 
 //
-// impoat libarary
+// import libarary
 //
 
 // basic libarary
@@ -43,7 +43,8 @@ struct porting {
     char* port;// name of the port
     unsigned int unit;// number of (un)loading units in the port
     unsigned int wait_time;// each period would cost when (un)loading
-    
+    unsigned int queue_head, queue_tail;
+
     // pthread locks
     pthread_mutex_t lock;
     pthread_cond_t  cond;
@@ -54,6 +55,8 @@ porting* create_porting(char* pt, unsigned int num, unsigned int tim) {
     ld->port = pt;
     ld->unit = num;
     ld->wait_time = tim;
+    ld->queue_head = 0;
+    ld->queue_tail = 0;
     pthread_mutex_init(&(ld->lock), 0);
     pthread_cond_init(&(ld->cond), 0);
     return ld;
@@ -92,7 +95,13 @@ void* port_thread(void* data) {
     //
     pthread_mutex_lock(&(prt->lock));
 
-    if (prt->unit < 0) pthread_cond_wait(&(prt->cond), &(prt->lock));// it will release mutex lock and wait for signal or broadcast
+    unsigned int queue_me = prt->queue_tail++;// drawing ticket
+    while (prt->unit < 0 || queue_me != prt->queue_head)
+    {
+        // it will release mutex lock and wait for signal or broadcast
+        // FIFO policy
+        pthread_cond_wait(&(prt->cond), &(prt->lock));
+    }
     prt->unit--;// deduct number of available units
 
     pthread_mutex_unlock(&(prt->lock));
@@ -113,7 +122,8 @@ void* port_thread(void* data) {
     pthread_mutex_lock(&(prt->lock));
     
     prt->unit++;// reload number of available units
-    
+    prt->queue_head++;// de-queue
+
     // to signal or broadcast?
     //http://www.qnx.com/developers/docs/qnxcar2/index.jsp?topic=%2Fcom.qnx.doc.neutrino.getting_started%2Ftopic%2Fs1_procs_Condvar_signal_vs_broadcast.html
     pthread_cond_broadcast(&(prt->cond));
@@ -195,7 +205,7 @@ void* ship_thread(void* data) {
         delay++;
     }
     else {
-        //printf("Ship %s sucess\n", mission[0]->ship);
+        //printf("Ship %s success\n", mission[0]->ship);
         succ++;
     }
 }
